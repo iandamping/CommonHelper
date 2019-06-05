@@ -1,5 +1,6 @@
 package com.ian.app.helper.util
 
+import android.content.Context
 import android.view.*
 import androidx.fragment.app.FragmentActivity
 import com.ian.app.helper.R
@@ -30,3 +31,6 @@ fun View.visible() {
 fun View.gone() {
     this.visibility = View.GONE
 }
+
+inline val Context.layoutInflater: android.view.LayoutInflater
+    get() = getSystemService(Context.LAYOUT_INFLATER_SERVICE) as android.view.LayoutInflater

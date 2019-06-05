@@ -4,7 +4,9 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
+import androidx.fragment.app.FragmentManager
 
 /**
  *
@@ -32,3 +34,10 @@ inline fun <reified T : Activity> Context.startActivity(
 }
 
 inline fun <reified T : Any> newIntent(ctx: Context): Intent = Intent(ctx, T::class.java)
+
+
+fun FragmentManager.switchFragment(savedInstanceState: Bundle?, layoutResId: Int, target: Fragment) {
+    if (savedInstanceState == null) {
+        this.beginTransaction().replace(layoutResId, target).commit()
+    }
+}
