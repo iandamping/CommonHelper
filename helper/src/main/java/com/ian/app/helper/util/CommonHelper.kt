@@ -5,6 +5,9 @@ import android.content.Context
 import android.util.Log
 import android.view.Window
 import android.widget.Toast
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.Observer
 import com.ian.app.helper.R
 import kotlinx.android.synthetic.main.activity_fullscreen.*
 
@@ -30,7 +33,7 @@ fun Context.fullScreen(imageUrl: String?) {
         alert.requestWindowFeature(Window.FEATURE_NO_TITLE)
         alert.setContentView(R.layout.activity_fullscreen)
         alert.setCanceledOnTouchOutside(true)
-        alert.fullScreenImageView.loadWithGlide(imageUrl,this)
+        alert.fullScreenImageView.loadWithGlide(imageUrl, this)
         alert.show()
         alert.ivClose.setOnClickListener {
             alert.dismiss()
@@ -41,4 +44,22 @@ fun Context.fullScreen(imageUrl: String?) {
 
 fun Context.myToast(msg: String?) {
     Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+}
+
+fun FragmentActivity.checkConnectivityStatus(status:(Boolean)->Unit) {
+    LiveDataNetworkChangeListener(this).apply {
+        this.observe(this@checkConnectivityStatus, Observer {
+            status(it)
+        })
+    }
+}
+
+fun Fragment.checkConnectivityStatus(status:(Boolean)->Unit) {
+    if (context != null) {
+        LiveDataNetworkChangeListener(context!!).apply {
+            this.observe(this@checkConnectivityStatus.viewLifecycleOwner, Observer {
+                status(it)
+            })
+        }
+    }
 }
