@@ -33,7 +33,7 @@ fun Context.fullScreen(imageUrl: String?) {
         alert.requestWindowFeature(Window.FEATURE_NO_TITLE)
         alert.setContentView(R.layout.activity_fullscreen)
         alert.setCanceledOnTouchOutside(true)
-        alert.fullScreenImageView.loadWithGlide(imageUrl, this)
+        alert.fullScreenImageView.loadWithGlide(imageUrl)
         alert.show()
         alert.ivClose.setOnClickListener {
             alert.dismiss()
