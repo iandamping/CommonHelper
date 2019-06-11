@@ -10,4 +10,7 @@
     <color name="black">#000000</color>
     <color name="white">#FFFF</color>
     <color name="placeholder_bg">#dddddd</color>
+
+    <color name="custom_dialog_failed">#C91919</color>
+    <color name="custom_dialog_succed">#0FB316</color>
 </resources>
