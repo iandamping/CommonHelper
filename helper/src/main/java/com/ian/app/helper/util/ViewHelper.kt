@@ -2,6 +2,7 @@ package com.ian.app.helper.util
 
 import android.content.Context
 import android.view.*
+import android.widget.EditText
 import androidx.fragment.app.FragmentActivity
 import com.ian.app.helper.R
 
@@ -34,3 +35,12 @@ fun View.gone() {
 
 inline val Context.layoutInflater: android.view.LayoutInflater
     get() = getSystemService(Context.LAYOUT_INFLATER_SERVICE) as android.view.LayoutInflater
+
+
+fun EditText.requestError(message: String?) {
+    if (this.text.isNullOrEmpty()) {
+        this.requestFocus()
+        this.error = message
+    }
+
+}

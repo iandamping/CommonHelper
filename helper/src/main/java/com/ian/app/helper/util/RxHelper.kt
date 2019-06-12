@@ -27,6 +27,12 @@ inline fun <reified T> CompositeDisposable.executes(
     }))
 }
 
+inline fun <reified T, reified U> Single<T>.singleZipWith(other: SingleSource<U>): Single<Pair<T, U>> =
+    zipWith(other, BiFunction { firstData, secondData -> Pair(firstData, secondData) })
+
+inline fun <reified T, reified U> Observable<T>.obsZipWith(other: ObservableSource<U>): Observable<Pair<T, U>> =
+    zipWith(other, BiFunction { firstData, secondData -> Pair(firstData, secondData) })
+
 fun CompositeDisposable.asyncRxExecutor(heavyFunction: () -> Unit?) {
     this.add(Observable.fromCallable(Runnable {
         heavyFunction()
