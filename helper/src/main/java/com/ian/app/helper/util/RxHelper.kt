@@ -33,12 +33,13 @@ inline fun <reified T> CompositeDisposable.obsExecutes(
 
 inline fun <reified T> CompositeDisposable.obsExecutesLimitedRetry(
     obs: Observable<T>,
+    timesToRetry:Int,
     crossinline onFailed: (Throwable?) -> Unit,
     crossinline onSuccess: (T?) -> Unit
 ) {
     this.add(obs.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
-//        3 time retry
-       .retryWhen { errors -> errors.zipWith(Observable.range(1, 5), BiFunction { error: Throwable, index: Int -> index  }) }
+//        we could time retry
+       .retryWhen { errors -> errors.zipWith(Observable.range(1, timesToRetry), BiFunction { error: Throwable, index: Int -> index  }) }
         /*unlimited retry
         .retryWhen { it.flatMap { Observable.timer(5, TimeUnit.SECONDS) } }*/
         .subscribe({
@@ -69,12 +70,13 @@ inline fun <reified T> CompositeDisposable.singleExecutes(
 
 inline fun <reified T> CompositeDisposable.singleExecutesLimitedRetry(
     obs: Single<T>,
+    timesToRetry:Int,
     crossinline onFailed: (Throwable?) -> Unit,
     crossinline onSuccess: (T?) -> Unit
 ) {
     this.add(obs.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
 //        3 time retry
-       .retryWhen { errors -> errors.zipWith(Flowable.range(1, 5), BiFunction { error: Throwable, index: Int -> index  }) }
+       .retryWhen { errors -> errors.zipWith(Flowable.range(1, timesToRetry), BiFunction { error: Throwable, index: Int -> index  }) }
         /*unlimited retry
         .retryWhen { it.flatMap { Flowable.timer(5, TimeUnit.SECONDS) } }*/
         .subscribe({

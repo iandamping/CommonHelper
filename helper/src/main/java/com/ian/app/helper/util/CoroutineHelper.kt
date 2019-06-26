@@ -1,6 +1,11 @@
 package com.ian.app.helper.util
 
+import com.ian.app.helper.util.Constant.factor
+import com.ian.app.helper.util.Constant.initialDelay
+import com.ian.app.helper.util.Constant.maxDelay
+import com.ian.app.helper.util.Constant.times
 import kotlinx.coroutines.*
+import java.io.IOException
 
 /**
  *
@@ -15,6 +20,34 @@ inline fun CoroutineScope.doSomethingWithIOScope(crossinline heavyFunction: susp
         }
     }
 }
+
+/*How to use this ?
+* this retryIo need coroutine scope because it's suspend function, if it to work on Mainthread dont forget using ui Dispatchers
+* simple yet powerfull
+*  uiScope.launch {
+            retryIO {
+                liveDataState.value = OnGetData(retryIO { api.getPopularMovieAsync(MovieConstant.api_key).await() })
+                liveDataState.value = OnSuccessGetData(true)
+            }
+        }
+* */
+
+suspend fun <T> retryIO(block: suspend () -> T): T {
+    var currentDelay = initialDelay
+    repeat(times - 1) {
+        try {
+            return block()
+        } catch (e: IOException) {
+            // you can log an error here and/or make a more finer-grained
+            // analysis of the cause to see if retry is needed
+        }
+        delay(currentDelay)
+        currentDelay = (currentDelay * factor).toLong().coerceAtMost(maxDelay)
+    }
+    return block() // last attempt
+}
+
+
 
 inline fun <reified T> CoroutineScope.doSomethingWithDeferred(
     deferred: Deferred<T>,
