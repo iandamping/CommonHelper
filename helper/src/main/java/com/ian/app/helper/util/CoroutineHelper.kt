@@ -1,5 +1,7 @@
 package com.ian.app.helper.util
 
+import android.util.Log
+import com.ian.app.helper.BuildConfig
 import com.ian.app.helper.util.Constant.factor
 import com.ian.app.helper.util.Constant.initialDelay
 import com.ian.app.helper.util.Constant.maxDelay
@@ -38,6 +40,7 @@ suspend fun <T> retryIO(block: suspend () -> T): T {
         try {
             return block()
         } catch (e: IOException) {
+            if (BuildConfig.DEBUG) Log.e("Retry Io", e.localizedMessage)
             // you can log an error here and/or make a more finer-grained
             // analysis of the cause to see if retry is needed
         }
@@ -47,143 +50,105 @@ suspend fun <T> retryIO(block: suspend () -> T): T {
     return block() // last attempt
 }
 
+/*New method for retrying network calls
+* how to use this ?
+*  uiScope.extractDeferred {
+            vm.getPopularTvAsync().apply {
+                _data.value = this.await().results
+            }
+        }
+* and JUST like that, our network calls now support retry
+*/
 
-
-inline fun <reified T> CoroutineScope.doSomethingWithDeferred(
-    deferred: Deferred<T>,
-    crossinline onSuccess: (T) -> Unit,
-    crossinline onFailed: (String) -> Unit
-) {
+inline fun <T> CoroutineScope.extractDeferred(crossinline heavyFunction: suspend () -> Deferred<T>) {
     this.launch {
-        try {
-            onSuccess(deferred.await())
-        } catch (t: Throwable) {
-            onFailed(t.localizedMessage)
+        retryIO { heavyFunction().await() }
+    }
+}
+
+
+inline fun <reified T, U> CoroutineScope.extractDeferredPair(noinline heavyFunction: suspend () -> Pair<Deferred<T>, Deferred<U>>) {
+    this.launch {
+        retryIO {
+            Pair(heavyFunction.invoke().first.await(), heavyFunction.invoke().second.await())
         }
     }
 }
 
-inline fun <reified T, U> CoroutineScope.deferredPair(
-    deferredSource1: Pair<Deferred<T>, Deferred<U>>,
-    crossinline onSuccess: (T, U) -> Unit,
-    crossinline onFailed: (String) -> Unit
-) {
+inline fun <reified A, X, E> CoroutineScope.extractDeferredTriple(noinline heavyFunction: suspend () -> Triple<Deferred<A>, Deferred<X>, Deferred<E>>) {
     this.launch {
-        try {
-            onSuccess(deferredSource1.first.await(), deferredSource1.second.await())
-        } catch (t: Throwable) {
-            onFailed(t.localizedMessage)
-        }
-    }
-}
-
-inline fun <reified A, X, E> CoroutineScope.deferredTriple(
-    deferredSource: Triple<Deferred<A>, Deferred<X>, Deferred<E>>,
-    crossinline onSuccess: (A, X, E) -> Unit,
-    crossinline onFailed: (String) -> Unit
-) {
-    this.launch {
-        try {
-            onSuccess(deferredSource.first.await(), deferredSource.second.await(), deferredSource.third.await())
-        } catch (t: Throwable) {
-            onFailed(t.localizedMessage)
-        }
-    }
-}
-
-inline fun <reified T, U, S, K> CoroutineScope.combineTripleWithSingleDeferred(
-    deferredSource1: Pair<Triple<Deferred<T>, Deferred<U>, Deferred<S>>, Deferred<K>>,
-    crossinline onSuccess: (Pair<Triple<T, U, S>, K>) -> Unit,
-    crossinline onFailed: (String) -> Unit
-) {
-    this.launch {
-        try {
-            onSuccess(
-                Pair(
-                    Triple(
-                        deferredSource1.first.first.await(),
-                        deferredSource1.first.second.await(),
-                        deferredSource1.first.third.await()
-                    ),
-                    deferredSource1.second.await()
-                )
+        retryIO {
+            Triple(
+                heavyFunction.invoke().first.await(),
+                heavyFunction.invoke().second.await(),
+                heavyFunction.invoke().third.await()
             )
-        } catch (t: Throwable) {
-            onFailed(t.localizedMessage)
         }
     }
 }
 
-inline fun <reified L, Y, N, D, A> CoroutineScope.combineTripleWithPairDeferred(
-    deferredSource1: Pair<Triple<Deferred<L>, Deferred<Y>, Deferred<N>>, Pair<Deferred<D>, Deferred<A>>>,
-    crossinline onSuccess: (Pair<Triple<L, Y, N>, Pair<D, A>>) -> Unit,
-    crossinline onFailed: (String) -> Unit
-) {
+inline fun <reified T, U, S, K> CoroutineScope.extractDeferredTripleWithSingle(noinline heavyFunction: suspend () -> Pair<Triple<Deferred<T>, Deferred<U>, Deferred<S>>, Deferred<K>>) {
     this.launch {
-        try {
-            onSuccess(
-                Pair(
-                    Triple(
-                        deferredSource1.first.first.await(),
-                        deferredSource1.first.second.await(),
-                        deferredSource1.first.third.await()
-                    ),
-                    Pair(
-                        deferredSource1.second.first.await(),
-                        deferredSource1.second.second.await()
-                    )
-
-                )
+        retryIO {
+            Pair(
+                Triple(
+                    heavyFunction.invoke().first.first.await(),
+                    heavyFunction.invoke().first.second.await(),
+                    heavyFunction.invoke().first.third.await()
+                ),
+                heavyFunction.invoke().second.await()
             )
-        } catch (t: Throwable) {
-            onFailed(t.localizedMessage)
         }
     }
 }
 
-inline fun <reified R, O, D, I, T, H> CoroutineScope.combineTripleWithTripleDeferred(
-    deferredSource1: Pair<Triple<Deferred<R>, Deferred<O>, Deferred<D>>, Triple<Deferred<I>, Deferred<T>, Deferred<H>>>,
-    crossinline onSuccess: (Pair<Triple<R, O, D>, Triple<I, T, H>>) -> Unit,
-    crossinline onFailed: (String) -> Unit
-) {
+inline fun <reified L, Y, N, D, A> CoroutineScope.extractDeferredTripleWithPair(noinline heavyFunction: suspend () -> Pair<Triple<Deferred<L>, Deferred<Y>, Deferred<N>>, Pair<Deferred<D>, Deferred<A>>>) {
     this.launch {
-        try {
-            onSuccess(
+        retryIO {
+            Pair(
+                Triple(
+                    heavyFunction.invoke().first.first.await(),
+                    heavyFunction.invoke().first.second.await(),
+                    heavyFunction.invoke().first.third.await()
+                ),
                 Pair(
-                    Triple(
-                        deferredSource1.first.first.await(),
-                        deferredSource1.first.second.await(),
-                        deferredSource1.first.third.await()
-                    ),
-                    Triple(
-                        deferredSource1.second.first.await(),
-                        deferredSource1.second.second.await(),
-                        deferredSource1.second.third.await()
-                    )
-
+                    heavyFunction.invoke().second.first.await(),
+                    heavyFunction.invoke().second.second.await()
                 )
+
             )
-        } catch (t: Throwable) {
-            onFailed(t.localizedMessage)
         }
     }
 }
 
-inline fun <reified T, U, S, K> CoroutineScope.combinePairWithPairDeferred(
-    deferredSource1: Pair<Pair<Deferred<T>, Deferred<U>>, Pair<Deferred<S>, Deferred<K>>>,
-    crossinline onSuccess: (Pair<Pair<T, U>, Pair<S, K>>) -> Unit,
-    crossinline onFailed: (String) -> Unit
-) {
+inline fun <reified R, O, D, I, T, H> CoroutineScope.extractDeferredTripleWithTriple(noinline heavyFunction: suspend () -> Pair<Triple<Deferred<R>, Deferred<O>, Deferred<D>>, Triple<Deferred<I>, Deferred<T>, Deferred<H>>>) {
     this.launch {
-        try {
-            onSuccess(
-                Pair(
-                    Pair(deferredSource1.first.first.await(), deferredSource1.first.second.await()),
-                    Pair(deferredSource1.second.first.await(), deferredSource1.second.second.await())
+        retryIO {
+            Pair(
+                Triple(
+                    heavyFunction.invoke().first.first.await(),
+                    heavyFunction.invoke().first.second.await(),
+                    heavyFunction.invoke().first.third.await()
+                ),
+                Triple(
+                    heavyFunction.invoke().second.first.await(),
+                    heavyFunction.invoke().second.second.await(),
+                    heavyFunction.invoke().second.third.await()
                 )
+
             )
-        } catch (t: Throwable) {
-            onFailed(t.localizedMessage)
+        }
+
+    }
+}
+
+inline fun <reified T, U, S, K> CoroutineScope.extractDeferredPairWithPair(noinline heavyFunction: suspend () -> Pair<Pair<Deferred<T>, Deferred<U>>, Pair<Deferred<S>, Deferred<K>>>) {
+    this.launch {
+        retryIO {
+            Pair(
+                Pair(heavyFunction.invoke().first.first.await(), heavyFunction.invoke().first.second.await()),
+                Pair(heavyFunction.invoke().second.first.await(), heavyFunction.invoke().second.second.await())
+            )
         }
     }
 }
