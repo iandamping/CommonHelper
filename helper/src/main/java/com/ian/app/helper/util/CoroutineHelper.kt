@@ -34,7 +34,7 @@ inline fun CoroutineScope.doSomethingWithIOScope(crossinline heavyFunction: susp
         }
 * */
 
-suspend fun <T> retryIO(block: suspend () -> T): T {
+suspend fun <T> retryIOWithReturn(block: suspend () -> T): T {
     var currentDelay = initialDelay
     repeat(times - 1) {
         try {
@@ -50,105 +50,53 @@ suspend fun <T> retryIO(block: suspend () -> T): T {
     return block() // last attempt
 }
 
-/*New method for retrying network calls
-* how to use this ?
-*  uiScope.extractDeferred {
-            vm.getPopularTvAsync().apply {
-                _data.value = this.await().results
+
+/*How to use this ?
+* this retryIo need coroutine scope because it's suspend function, if it to work on Mainthread dont forget using ui Dispatchers
+* simple yet powerfull
+*  uiScope.launch {
+            retryIO {
+                yourFunction()
             }
         }
-* and JUST like that, our network calls now support retry
-*/
+* */
 
-inline fun <T> CoroutineScope.extractDeferred(crossinline heavyFunction: suspend () -> Deferred<T>) {
-    this.launch {
-        retryIO { heavyFunction().await() }
+
+suspend fun retryIO(block: suspend () -> Unit) {
+    var currentDelay = initialDelay
+    repeat(times - 1) {
+        try {
+            return block()
+        } catch (e: IOException) {
+            if (BuildConfig.DEBUG) Log.e("Retry Io", e.localizedMessage)
+            // you can log an error here and/or make a more finer-grained
+            // analysis of the cause to see if retry is needed
+        }
+        delay(currentDelay)
+        currentDelay = (currentDelay * factor).toLong().coerceAtMost(maxDelay)
     }
+    return block() // last attempt
 }
 
 
-inline fun <reified T, U> CoroutineScope.extractDeferredPair(noinline heavyFunction: suspend () -> Pair<Deferred<T>, Deferred<U>>) {
-    this.launch {
-        retryIO {
-            Pair(heavyFunction.invoke().first.await(), heavyFunction.invoke().second.await())
-        }
-    }
+
+/*This serial of function is used for concurrent call*/
+fun <A, B> computeDoubleResult(await1: A, await2: B): Pair<A, B> {
+    return Pair(await1, await2)
 }
 
-inline fun <reified A, X, E> CoroutineScope.extractDeferredTriple(noinline heavyFunction: suspend () -> Triple<Deferred<A>, Deferred<X>, Deferred<E>>) {
-    this.launch {
-        retryIO {
-            Triple(
-                heavyFunction.invoke().first.await(),
-                heavyFunction.invoke().second.await(),
-                heavyFunction.invoke().third.await()
-            )
-        }
-    }
+fun <A, M, I> computeTripleResult(await1: A, await2: M, await3: I): Triple<A, M, I> {
+    return Triple(await1, await2, await3)
 }
 
-inline fun <reified T, U, S, K> CoroutineScope.extractDeferredTripleWithSingle(noinline heavyFunction: suspend () -> Pair<Triple<Deferred<T>, Deferred<U>, Deferred<S>>, Deferred<K>>) {
-    this.launch {
-        retryIO {
-            Pair(
-                Triple(
-                    heavyFunction.invoke().first.first.await(),
-                    heavyFunction.invoke().first.second.await(),
-                    heavyFunction.invoke().first.third.await()
-                ),
-                heavyFunction.invoke().second.await()
-            )
-        }
-    }
+fun <N, O, V, I> computeQuadResult(await1: N, await2: O,await3: V, await4: I): Pair<Pair<N,O>, Pair<V,I>> {
+    return Pair(Pair(await1,await2), Pair(await3,await4))
 }
 
-inline fun <reified L, Y, N, D, A> CoroutineScope.extractDeferredTripleWithPair(noinline heavyFunction: suspend () -> Pair<Triple<Deferred<L>, Deferred<Y>, Deferred<N>>, Pair<Deferred<D>, Deferred<A>>>) {
-    this.launch {
-        retryIO {
-            Pair(
-                Triple(
-                    heavyFunction.invoke().first.first.await(),
-                    heavyFunction.invoke().first.second.await(),
-                    heavyFunction.invoke().first.third.await()
-                ),
-                Pair(
-                    heavyFunction.invoke().second.first.await(),
-                    heavyFunction.invoke().second.second.await()
-                )
-
-            )
-        }
-    }
+fun <L, Y, N, D, A> computeQuintResult(await1: L, await2: Y,await3: N, await4: D,await5:A): Pair<Triple<L,Y,N>, Pair<D,A>> {
+    return Pair(Triple(await1,await2,await3), Pair(await4,await5))
 }
 
-inline fun <reified R, O, D, I, T, H> CoroutineScope.extractDeferredTripleWithTriple(noinline heavyFunction: suspend () -> Pair<Triple<Deferred<R>, Deferred<O>, Deferred<D>>, Triple<Deferred<I>, Deferred<T>, Deferred<H>>>) {
-    this.launch {
-        retryIO {
-            Pair(
-                Triple(
-                    heavyFunction.invoke().first.first.await(),
-                    heavyFunction.invoke().first.second.await(),
-                    heavyFunction.invoke().first.third.await()
-                ),
-                Triple(
-                    heavyFunction.invoke().second.first.await(),
-                    heavyFunction.invoke().second.second.await(),
-                    heavyFunction.invoke().second.third.await()
-                )
-
-            )
-        }
-
-    }
-}
-
-inline fun <reified T, U, S, K> CoroutineScope.extractDeferredPairWithPair(noinline heavyFunction: suspend () -> Pair<Pair<Deferred<T>, Deferred<U>>, Pair<Deferred<S>, Deferred<K>>>) {
-    this.launch {
-        retryIO {
-            Pair(
-                Pair(heavyFunction.invoke().first.first.await(), heavyFunction.invoke().first.second.await()),
-                Pair(heavyFunction.invoke().second.first.await(), heavyFunction.invoke().second.second.await())
-            )
-        }
-    }
+fun < R, O, D, I, T, H> computeSextResult(await1: R, await2: O,await3: D, await4: I,await5:T,await6:H): Pair<Triple<R,O,D>, Triple<I,T,H>> {
+    return Pair(Triple(await1,await2,await3), Triple(await4,await5,await6))
 }
