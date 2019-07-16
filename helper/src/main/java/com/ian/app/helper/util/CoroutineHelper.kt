@@ -78,7 +78,12 @@ suspend fun retryIO(block: suspend () -> Unit) {
     return block() // last attempt
 }
 
-
+/*Single call with retryIO*/
+inline fun <T> CoroutineScope.extractDeferred(crossinline heavyFunction: suspend () -> Deferred<T>) {
+    this.launch {
+        retryIO { heavyFunction().await() }
+    }
+}
 
 /*This serial of function is used for concurrent call*/
 fun <A, B> computeDoubleResult(await1: A, await2: B): Pair<A, B> {
