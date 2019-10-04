@@ -10,6 +10,7 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Observer
 import com.ian.app.helper.R
 import kotlinx.android.synthetic.main.activity_fullscreen.*
+import timber.log.Timber
 
 /**
  *
@@ -18,18 +19,27 @@ Github = https://github.com/iandamping
  */
 
 inline fun <reified T> T.logD(msg: String?) {
-    val tag = T::class.java.simpleName
-    Log.d(tag, msg)
+    Timber.d("#### log inside ${T::class.java.simpleName} ####",msg)
+   /* val tag = T::class.java.simpleName
+    Log.d(tag, msg)*/
 }
 
 inline fun <reified T> T.logE(msg: String?) {
-    val tag = T::class.java.simpleName
-    Log.e(tag, msg)
+    Timber.e("#### log inside ${T::class.java.simpleName} ####",msg)
+   /* val tag = T::class.java.simpleName
+    Log.e(tag, msg)*/
+}
+
+inline fun <reified T> T.logI(msg: String?) {
+    Timber.i("#### log inside ${T::class.java.simpleName} ####",msg)
+    /* val tag = T::class.java.simpleName
+     Log.e(tag, msg)*/
 }
 
 fun Context.fullScreen(imageUrl: String?) {
     imageUrl?.let {
-        val alert = Dialog(this, R.style.AppTheme)
+//        val alert = Dialog(this, R.style.AppTheme)
+        val alert = Dialog(this, R.style.Theme_AppCompat_Light)
         alert.requestWindowFeature(Window.FEATURE_NO_TITLE)
         alert.setContentView(R.layout.activity_fullscreen)
         alert.setCanceledOnTouchOutside(true)
