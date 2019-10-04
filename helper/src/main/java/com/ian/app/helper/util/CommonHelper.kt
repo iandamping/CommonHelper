@@ -18,20 +18,20 @@ Created by Ian Damping on 25/05/2019.
 Github = https://github.com/iandamping
  */
 
-inline fun <reified T> T.logD(msg: String?) {
-    Timber.d("#### log inside ${T::class.java.simpleName} ####",msg)
+fun logD(msg: String?) {
+    Timber.tag("#### timber logger ####").d(msg)
    /* val tag = T::class.java.simpleName
     Log.d(tag, msg)*/
 }
 
-inline fun <reified T> T.logE(msg: String?) {
-    Timber.e("#### log inside ${T::class.java.simpleName} ####",msg)
+fun logE(msg: String?) {
+    Timber.tag("#### timber logger ####").e(msg)
    /* val tag = T::class.java.simpleName
     Log.e(tag, msg)*/
 }
 
-inline fun <reified T> T.logI(msg: String?) {
-    Timber.i("#### log inside ${T::class.java.simpleName} ####",msg)
+ fun logI(msg: String?) {
+    Timber.tag("#### timber logger ####").i(msg)
     /* val tag = T::class.java.simpleName
      Log.e(tag, msg)*/
 }
