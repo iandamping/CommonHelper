@@ -20,30 +20,34 @@ Github = https://github.com/iandamping
 
 inline fun <reified T> T.logD(msg: String?) {
     val tag = T::class.java.simpleName
-    Log.d(tag, msg)
+    if(msg!=null)Log.d(tag, msg)
 }
 
 inline fun <reified T> T.logE(msg: String?) {
     val tag = T::class.java.simpleName
-    Log.e(tag, msg)
+    if(msg!=null)Log.e(tag, msg)
 }
 
 inline fun <reified T> T.logI(msg: String?) {
     val tag = T::class.java.simpleName
-    Log.i(tag, msg)
+    if(msg!=null) Log.i(tag, msg)
 }
 
-fun timberLogD(msg: String?) {
-    Timber.tag("#### timber logger ####").d(msg)
+inline fun <reified T> T.timberLogE(msg: String?) {
+    val tag = T::class.java.simpleName
+    Timber.tag("### Log in $tag class ###").e(msg)
 }
 
-fun timberLogE(msg: String?) {
-    Timber.tag("#### timber logger ####").e(msg)
+inline fun <reified T> T.timberLogD(msg: String?) {
+    val tag = T::class.java.simpleName
+    Timber.tag("### Log in $tag class ###").d(msg)
 }
 
- fun timberLogI(msg: String?) {
-     Timber.tag("#### timber logger ####").i(msg)
+inline fun <reified T> T.timberLogI(msg: String?) {
+    val tag = T::class.java.simpleName
+    Timber.tag("### Log in $tag class ###").i(msg)
 }
+
 
 fun Context.fullScreen(imageUrl: String?) {
     imageUrl?.let {

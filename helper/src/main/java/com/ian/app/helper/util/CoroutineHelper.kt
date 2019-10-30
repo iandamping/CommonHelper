@@ -1,12 +1,12 @@
 package com.ian.app.helper.util
 
-import android.util.Log
 import com.ian.app.helper.BuildConfig
 import com.ian.app.helper.util.Constant.factor
 import com.ian.app.helper.util.Constant.initialDelay
 import com.ian.app.helper.util.Constant.maxDelay
 import com.ian.app.helper.util.Constant.times
 import kotlinx.coroutines.*
+import timber.log.Timber
 import java.io.IOException
 
 /**
@@ -14,6 +14,9 @@ import java.io.IOException
 Created by Ian Damping on 27/05/2019.
 Github = https://github.com/iandamping
  */
+private fun timberLogE(msg: String?) {
+    Timber.tag("#### timber logger ####").e(msg)
+}
 
 inline fun CoroutineScope.doSomethingWithIOScope(crossinline heavyFunction: suspend () -> Unit?) {
     this.launch {
@@ -40,7 +43,7 @@ suspend fun <T> retryIOWithReturn(block: suspend () -> T): T {
         try {
             return block()
         } catch (e: IOException) {
-            if (BuildConfig.DEBUG) Log.e("Retry Io", e.localizedMessage)
+            if (BuildConfig.DEBUG) timberLogE("Retry Io ${e.localizedMessage}")
             // you can log an error here and/or make a more finer-grained
             // analysis of the cause to see if retry is needed
         }
@@ -68,7 +71,7 @@ suspend fun retryIO(block: suspend () -> Unit) {
         try {
             return block()
         } catch (e: IOException) {
-            if (BuildConfig.DEBUG) Log.e("Retry Io", e.localizedMessage)
+            if (BuildConfig.DEBUG) timberLogE("Retry Io ${e.localizedMessage}")
             // you can log an error here and/or make a more finer-grained
             // analysis of the cause to see if retry is needed
         }

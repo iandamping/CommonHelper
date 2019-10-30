@@ -97,9 +97,9 @@ fun CompositeDisposable.asyncRxExecutor(heavyFunction: () -> Unit?) {
     this.add(Observable.fromCallable(Runnable {
         heavyFunction()
     }::run).subscribeOn(Schedulers.io()).subscribe({
-        logD(Constant.succesWork)
+        timberLogD(Constant.succesWork)
     }, {
-        logE(Constant.failedWork)
+        timberLogE(Constant.failedWork)
     }))
 
 }
