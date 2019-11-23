@@ -1,9 +1,13 @@
 package com.ian.app.helper.data
 
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.asLiveData
 import androidx.lifecycle.liveData
 import androidx.lifecycle.map
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import java.lang.Exception
 
 /**
  *
@@ -24,26 +28,48 @@ fun <T, A> ssotResultLiveData(databaseQuery: () -> LiveData<T>,
                               networkCall: suspend () -> ResultToConsume<A>,
                               saveCallResult: suspend (A) -> Unit): LiveData<ResultToConsume<T>> =
         liveData(Dispatchers.IO) {
-            //emit loading
-            emit(ResultToConsume.loading())
-
-            //emit livedata from database
-            val source = databaseQuery.invoke().map {
-                //emit succeed from database
-                ResultToConsume.success(it)
-            }
-            //emit it first
-            emitSource(source)
-
-            //variable that invoked networkCall function
-            val responseStatus = networkCall.invoke()
-
-            if (responseStatus.status == ResultToConsume.Status.SUCCESS) {
-                //if succeed, save the networkCall data into database
+            //emit loading with cache data if exist
+            val disposables = emitSource(databaseQuery.invoke().map {
+                ResultToConsume.loading(it)
+            })
+            try {
+                val responseStatus = networkCall.invoke()
+                disposables.dispose()
+                check(responseStatus.status == ResultToConsume.Status.SUCCESS){
+                    " ${responseStatus.message} "
+                }
+                assert(responseStatus.data!=null){
+                    " data is null "
+                }
                 saveCallResult(responseStatus.data!!)
-            } else if (responseStatus.status == ResultToConsume.Status.ERROR) {
-                //if failed, emit failed and emitsource database livedata
-                emit(ResultToConsume.error(responseStatus.message!!))
-                emitSource(source)
+                emitSource(databaseQuery.invoke().map { ResultToConsume.success(it) })
+            } catch (e: Exception){
+                emitSource(databaseQuery.invoke().map { ResultToConsume.error(e.message!!,it) })
             }
         }
+
+
+fun <T, A> ssotFlowResultLiveData(databaseQuery: () -> Flow<T>,
+                               networkCall: suspend () -> ResultToConsume<A>,
+                               saveCallResult: suspend (A) -> Unit): LiveData<ResultToConsume<T>> =
+    liveData(Dispatchers.IO) {
+        //emit loading with cache data if exist
+        val disposables = emitSource(databaseQuery.invoke().map {
+            ResultToConsume.loading(it)
+        }.asLiveData())
+
+        try {
+            val responseStatus = networkCall.invoke()
+            disposables.dispose()
+            check(responseStatus.status == ResultToConsume.Status.SUCCESS){
+                " ${responseStatus.message} "
+            }
+            assert(responseStatus.data!=null){
+                " data is null "
+            }
+            saveCallResult(responseStatus.data!!)
+            emitSource(databaseQuery.invoke().map { ResultToConsume.success(it) }.asLiveData())
+        } catch (e: Exception){
+            emitSource(databaseQuery.invoke().map { ResultToConsume.error(e.message!!,it) }.asLiveData())
+        }
+    }

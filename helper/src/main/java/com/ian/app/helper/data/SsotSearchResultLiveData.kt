@@ -22,6 +22,39 @@ private fun searchKeywordFlow(data: String): Flow<String> = flow {
 }
 
 @ExperimentalCoroutinesApi
+@FlowPreview
+fun <T, A> searchResultLiveData(data: String, databaseQuery: () -> LiveData<T>,
+                                networkCall: suspend (querry: String) -> ResultToConsume<A>,
+                                saveCallResult: suspend (A) -> Unit): LiveData<ResultToConsume<T>> = liveData {
+    //emit loading with cache data if exist
+    val disposables = emitSource(databaseQuery.invoke().map {
+        ResultToConsume.loading(it)
+    })
+
+    try {
+        searchKeywordFlow(data).debounce(200L).buffer().map { networkCall.invoke(it) }
+            .distinctUntilChanged()
+            .collectLatest { resultFlow ->
+                disposables.dispose()
+                checkNotNull(resultFlow){
+                    " result from network call is null"
+                }
+                check(resultFlow.status == ResultToConsume.Status.SUCCESS){
+                    " result status is not success "
+                }
+                assert(resultFlow.data!=null){
+                    " data from result is null"
+                }
+                saveCallResult(resultFlow.data!!)
+                emitSource(databaseQuery.invoke().map { ResultToConsume.success(it) })
+            }
+    }catch (e:Exception){
+        emitSource(databaseQuery.invoke().map { ResultToConsume.error(e.message!!,it) })
+    }
+}
+
+
+/*@ExperimentalCoroutinesApi
 private fun <T> networkCallResultOfFlow(data: ResultToConsume<T>): Flow<ResultToConsume<T>> = flow {
     emit(ResultToConsume.loading())
     if (data.status == ResultToConsume.Status.SUCCESS) {
@@ -52,4 +85,4 @@ fun <T, A> searchResultLiveDataSSOT(data: String, databaseQuery: () -> LiveData<
                 }
             }
 
-}
+}*/
