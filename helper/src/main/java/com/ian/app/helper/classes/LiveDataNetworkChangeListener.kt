@@ -1,4 +1,4 @@
-package com.ian.app.helper.util
+package com.ian.app.helper.classes
 
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -17,13 +17,16 @@ import androidx.annotation.RequiresApi
 import androidx.lifecycle.LiveData
 
 internal class LiveDataNetworkChangeListener(private val ctx: Context) : LiveData<Boolean>() {
-    var intentFilter = IntentFilter(CONNECTIVITY_ACTION)
+    private var intentFilter = IntentFilter(CONNECTIVITY_ACTION)
     private var connectivityManager = ctx.getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
     private lateinit var networkCallback: NetworkCallback
 
     init {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            networkCallback = NetworkCallback(this)
+            networkCallback =
+                NetworkCallback(
+                    this
+                )
         }
     }
 

@@ -33,7 +33,8 @@ fun createOkHttpClient(): OkHttpClient {
         .addInterceptor(HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BODY
         })
-        .addInterceptor { chain -> chain.run { proceed(this.request().newBuilder().build()) }
+        .addInterceptor { chain ->
+            chain.run { proceed(this.request().newBuilder().build()) }
         }
     return okHttpBuilder.build()
 }
