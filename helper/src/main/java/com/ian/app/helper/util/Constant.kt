@@ -6,6 +6,9 @@ Created by Ian Damping on 25/05/2019.
 Github = https://github.com/iandamping
  */
 object Constant {
+    const val RequestSelectGalleryImage = 102
+    const val RequestOpenCamera = 234
+
     const val succesWork = "Success"
     const val failedWork = "Failed"
 
