@@ -22,10 +22,6 @@ inline fun <reified T> helperNetworkModule(baseUrl: String) = module {
     single { createClient<T>(get(), baseUrl) }
 }
 
-inline fun <reified T> helperRxNetworkModule(baseUrl: String) = module {
-    single { createOkHttpClient() }
-    single { createRxClient<T>(get(), baseUrl) }
-}
 
 fun createOkHttpClient(): OkHttpClient {
     val okHttpBuilder: OkHttpClient.Builder = OkHttpClient.Builder()
@@ -46,15 +42,6 @@ fun createOkHttpClient(): OkHttpClient {
 }
 
 inline fun <reified T> createClient(okHttpClient: OkHttpClient, baseUrl: String): T {
-    val retrofit = Retrofit.Builder()
-        .client(okHttpClient)
-        .addConverterFactory(GsonConverterFactory.create(GsonBuilder().setLenient().create()))
-        .baseUrl(baseUrl)
-        .build()
-    return retrofit.create(T::class.java)
-}
-
-inline fun <reified T> createRxClient(okHttpClient: OkHttpClient, baseUrl: String): T {
     val retrofit = Retrofit.Builder()
         .client(okHttpClient)
         .addConverterFactory(GsonConverterFactory.create(GsonBuilder().setLenient().create()))
