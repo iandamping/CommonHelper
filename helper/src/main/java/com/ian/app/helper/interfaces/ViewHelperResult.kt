@@ -22,4 +22,12 @@ interface ViewHelperResult {
     fun View.gone()
 
     fun EditText.requestError(message: String?)
+
+    fun setMargins(
+        view: View,
+        left: Int,
+        top: Int,
+        right: Int,
+        bottom: Int
+    )
 }

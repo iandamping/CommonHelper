@@ -1,4 +1,4 @@
-package com.ian.app.helper.model
+package com.ian.app.helper.deprecated
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
@@ -9,6 +9,16 @@ import androidx.lifecycle.ViewModel
 Created by Ian Damping on 13/05/2019.
 Github = https://github.com/iandamping
  */
+@Deprecated(
+    message = "This class is still using Tuple & Tuple types and expression are no longer supported in Kotlin starting from M3"
+    ,
+    replaceWith = ReplaceWith(
+        "LiveDataTripleZipperImpl",
+        "com.ian.app.helper.classes.LiveDataTripleZipperImpl"
+    )
+    ,
+    level = DeprecationLevel.WARNING
+)
 class GenericViewModelZipperTriple<A, B, C>(a: LiveData<A>?, b: LiveData<B>?, c: LiveData<C>?) : ViewModel() {
     private var customData: MediatorLiveData<Triple<A?, B?, C?>> = MediatorLiveData()
     private var lastA: A? = null

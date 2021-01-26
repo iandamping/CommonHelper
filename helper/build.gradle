@@ -36,12 +36,16 @@ android {
         jvmTarget = "1.8"
     }
 
+    buildFeatures {
+//        dataBinding true
+        viewBinding true
+    }
 
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-
+    implementation"org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation 'androidx.appcompat:appcompat:1.1.0'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.2.0'
@@ -63,16 +67,20 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$livedata_version"
     implementation "androidx.lifecycle:lifecycle-livedata-ktx:$livedata_version"
     //internet
-    implementation "com.squareup.retrofit2:retrofit:$retrofit_version"
-    implementation "com.squareup.retrofit2:adapter-rxjava2:$retrofit_version"
-    implementation "com.squareup.retrofit2:converter-gson:$retrofit_version"
+    implementation "com.squareup.retrofit2:retrofit:$retrofitVer"
+    implementation "com.squareup.retrofit2:adapter-rxjava2:$retrofitVer"
+    implementation "com.squareup.retrofit2:converter-gson:$retrofitVer"
     implementation 'com.google.code.gson:gson:2.8.6'
     //internet logging
-    implementation "com.squareup.okhttp3:okhttp:$okhttp_version"
-    implementation "com.squareup.okhttp3:logging-interceptor:$okhttp_version"
+    implementation "com.squareup.okhttp3:okhttp:$okHttp3Ver"
+    implementation "com.squareup.okhttp3:logging-interceptor:$okHttp3LogginInterceptorVer"
     //timber
     implementation 'com.jakewharton.timber:timber:4.7.1'
     implementation 'org.koin:koin-android-viewmodel:2.0.1'
     //permission helper
     implementation 'com.karumi:dexter:5.0.0'
+    //browser
+    implementation 'androidx.browser:browser:1.2.0'
+    //security
+    implementation 'commons-codec:commons-codec:1.10'
 }

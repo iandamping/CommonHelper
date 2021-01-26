@@ -23,10 +23,7 @@ internal class LiveDataNetworkChangeListener(private val ctx: Context) : LiveDat
 
     init {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            networkCallback =
-                NetworkCallback(
-                    this
-                )
+            networkCallback = NetworkCallback(this)
         }
     }
 
@@ -38,8 +35,7 @@ internal class LiveDataNetworkChangeListener(private val ctx: Context) : LiveDat
                 networkCallback
             )
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP -> {
-                val builder =
-                    NetworkRequest.Builder().addTransportType(TRANSPORT_CELLULAR).addTransportType(TRANSPORT_WIFI)
+                val builder = NetworkRequest.Builder().addTransportType(TRANSPORT_CELLULAR).addTransportType(TRANSPORT_WIFI)
                 connectivityManager.registerNetworkCallback(builder.build(), networkCallback)
             }
             else -> {

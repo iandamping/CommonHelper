@@ -1,6 +1,7 @@
 package com.ian.app.helper.base
 
 import com.ian.app.helper.data.ResultToConsume
+import com.ian.app.helper.data.Results
 import kotlinx.coroutines.suspendCancellableCoroutine
 import retrofit2.Call
 import retrofit2.Callback
@@ -9,6 +10,43 @@ import kotlin.coroutines.resume
 
 abstract class BaseDataSource {
 
+    protected inline fun <T> doOneShots(call: () -> Response<T>): Results<T> {
+        try {
+            val response = call()
+            if (response.isSuccessful) {
+                val body = response.body()
+                if (body != null) return Results.Success(
+                    body
+                )
+            }
+            return Results.Error(Exception())
+        } catch (e: Exception) {
+            return Results.Error(e)
+        }
+    }
+
+
+    protected fun <T> Call<T>.doOneShots(data:(Results<T>) -> Unit) {
+        //you must handle this with try catch
+        this.enqueue(object : Callback<T> {
+            override fun onFailure(call: Call<T>, t: Throwable) {
+                data.invoke(Results.Error(Exception(message = "Network call has failed for a following reason: ", cause = t)))
+            }
+
+            override fun onResponse(call: Call<T>, response: Response<T>) {
+                try {
+                    if (response.isSuccessful) {
+                        val body = response.body()
+                        if (body != null) data.invoke(Results.Success(body))
+                    }
+                } catch (e: Exception) {
+                    Results.Error(Exception(message = "Network call has failed for a following reason: ", cause = e.cause))
+                }
+            }
+        })
+    }
+
+    @Deprecated(level = DeprecationLevel.ERROR, message = "removing enum clasees with data classes")
     protected suspend fun <T> getResult(call: suspend () -> Response<T>): ResultToConsume<T> {
         try {
             val response = call()
@@ -22,6 +60,8 @@ abstract class BaseDataSource {
         }
     }
 
+
+    @Deprecated(level = DeprecationLevel.ERROR, message = "when on failure call the callback wont sent why its error")
     protected suspend fun <T> Call<T>.doOneShot(): ResultToConsume<T> =
         //you must handle this with try catch
         suspendCancellableCoroutine { cancellableContinuation ->
@@ -49,6 +89,7 @@ abstract class BaseDataSource {
         }
 
 
+    @Deprecated(level = DeprecationLevel.ERROR, message = "when on failure call the callback wont sent why its error")
     protected suspend fun <T> Response<T>.doOneShot(): ResultToConsume<T> = suspendCancellableCoroutine { cancellableContinuation ->
         //you must handle this with try catch
             if (this.isSuccessful) {

@@ -5,6 +5,7 @@ package com.ian.app.helper.data
 Created by Ian Damping on 19/09/2019.
 Github = https://github.com/iandamping
  */
+@Deprecated(level = DeprecationLevel.WARNING, message = "we are still using enum clasees")
 data class ResultToConsume<out T>(val status: Status, val data: T?, val message: String?) {
 
     enum class Status {
@@ -14,6 +15,7 @@ data class ResultToConsume<out T>(val status: Status, val data: T?, val message:
     }
 
     companion object {
+
         fun <T> success(data: T): ResultToConsume<T> {
             return ResultToConsume(Status.SUCCESS, data, null)
         }
